@@ -301,10 +301,10 @@ body::before {
   align-items: center;
   justify-content: center;
   cursor: grab;
-  transition: left .3s cubic-bezier(.4,0,.2,1), box-shadow .2s;
   touch-action: none;
+  will-change: left;
 }
-#slide-thumb:active { cursor: grabbing; box-shadow: 0 6px 24px rgba(0,122,255,.55); }
+#slide-thumb:active { cursor: grabbing; }
 #slide-thumb svg { pointer-events: none; }
 
 .home-section-label {
@@ -1613,7 +1613,9 @@ body::before {
     <div style="font-size:13px;color:var(--text3);font-weight:500;margin-bottom:18px;">Enter your current PIN, then set a new one.</div>
     <input class="info-input" id="cp-current" type="password" placeholder="Current PIN" autocomplete="off" style="font-family:var(--mono);letter-spacing:.1em;">
     <input class="info-input" id="cp-new" type="password" placeholder="New PIN (min 6 chars)" autocomplete="off" style="font-family:var(--mono);letter-spacing:.1em;">
-    <input class="info-input" id="cp-confirm" type="password" placeholder="Confirm new PIN" autocomplete="off" style="font-family:var(--mono);letter-spacing:.1em;" onkeydown="if(event.key==='Enter')changePinSave()">
+    <input class="info-input" id="cp-confirm" type="password" placeholder="Confirm new PIN" autocomplete="off" style="font-family:var(--mono);letter-spacing:.1em;">
+    <input class="info-input" id="cp-hint" type="text" placeholder="Hint question (e.g. First car?)" autocomplete="off" style="font-family:var(--font);" onkeydown="if(event.key==='Enter')changePinSave()">
+    <div style="font-size:11px;color:var(--text3);font-weight:500;margin:-4px 0 10px;padding:0 2px;">Shown after 2 failed attempts. Don't make it too obvious.</div>
     <div style="color:var(--red);font-size:13px;font-weight:600;min-height:18px;margin-bottom:10px;" id="cp-err"></div>
     <div style="display:flex;gap:8px;">
       <button style="flex:1;padding:14px;border-radius:14px;background:var(--bg2);color:var(--text2);font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);" onclick="changePinClose()">Cancel</button>
@@ -1657,6 +1659,19 @@ body::before {
   <button class="lock-btn" id="lock-btn" onclick="lockSubmit()">Unlock</button>
   <div class="lock-error-msg" id="lock-err"></div>
   <div class="lock-hint" id="lock-hint"></div>
+  <!-- Hint question input — only shown during set/confirm flow -->
+  <input id="lock-hint-input" type="text" autocomplete="off"
+    placeholder="Hint question (optional)"
+    style="display:none;margin-top:14px;width:100%;max-width:300px;padding:12px 16px;
+           border-radius:14px;border:1.5px solid var(--glass-border2);
+           background:var(--glass-bg);backdrop-filter:var(--glass-blur);
+           -webkit-backdrop-filter:var(--glass-blur);font-size:14px;font-weight:500;
+           color:var(--text);font-family:var(--font);outline:none;text-align:center;
+           box-shadow:var(--glass-shadow);transition:border-color .18s;"
+    onfocus="this.style.borderColor='var(--c1)'" onblur="this.style.borderColor='var(--glass-border2)'">
+  <div style="font-size:11px;color:var(--text4);margin-top:6px;font-weight:500;text-align:center;max-width:280px;display:none;" id="lock-hint-label">
+    Shown after 2 wrong attempts
+  </div>
 </div>
 
 <!-- Copy toast -->
@@ -1733,56 +1748,70 @@ function navTab(idx){
 
 // ── Slide to add ──────────────────────────────────────────────────────────────
 (function initSlide(){
-  const wrap = document.getElementById('slide-btn-wrap');
+  const wrap  = document.getElementById('slide-btn-wrap');
   const thumb = document.getElementById('slide-thumb');
-  let dragging=false, startX=0, thumbX=0;
-  const maxX = () => wrap.offsetWidth - thumb.offsetWidth - 8;
+  if(!wrap || !thumb) return;
 
-  function startDrag(e){
-    dragging=true;
-    startX = (e.touches?e.touches[0].clientX:e.clientX);
-    thumbX = parseInt(thumb.style.left)||4;
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', endDrag);
-    document.addEventListener('touchmove', onMove, {passive:false});
-    document.addEventListener('touchend', endDrag);
+  let active = false, startX = 0, curX = 0;
+
+  function getMax(){ return wrap.getBoundingClientRect().width - thumb.getBoundingClientRect().width - 8; }
+
+  function pointerX(e){ return e.touches ? e.touches[0].clientX : e.clientX; }
+
+  function onStart(e){
+    // Only start if the touch/click lands on the thumb
+    const target = e.target.closest ? e.target.closest('#slide-thumb') : e.target;
+    if(!target || target.id !== 'slide-thumb') return;
+    active  = true;
+    startX  = pointerX(e);
+    curX    = 4; // current left offset
+    // Kill transition during drag
+    thumb.style.transition = 'none';
+    e.stopPropagation(); // prevent tab-swipe from stealing
   }
+
   function onMove(e){
-    if(!dragging) return;
-    if(e.cancelable) e.preventDefault();
-    const cx = e.touches?e.touches[0].clientX:e.clientX;
-    const delta = cx - startX;
-    const newX = Math.max(4, Math.min(thumbX+delta, maxX()));
-    thumb.style.left = newX+'px';
-    const pct = (newX-4)/Math.max(1,maxX()-4);
-    thumb.style.opacity = 1;
-    if(pct>0.75){
-      thumb.style.background='#34C759';
-      thumb.style.boxShadow='0 4px 16px rgba(52,199,89,.5)';
+    if(!active) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const dx   = pointerX(e) - startX;
+    const newX = Math.max(4, Math.min(4 + dx, getMax()));
+    curX = newX;
+    thumb.style.left = newX + 'px';
+    const pct = (newX - 4) / Math.max(1, getMax() - 4);
+    if(pct > 0.72){
+      thumb.style.background = '#34C759';
+      thumb.style.boxShadow  = '0 4px 16px rgba(52,199,89,.55)';
     } else {
-      thumb.style.background='var(--c1)';
-      thumb.style.boxShadow='0 4px 16px rgba(0,122,255,.45)';
+      thumb.style.background = 'var(--c1)';
+      thumb.style.boxShadow  = '0 4px 16px rgba(0,122,255,.45)';
     }
   }
-  function endDrag(e){
-    dragging=false;
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', endDrag);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', endDrag);
-    const newX = parseInt(thumb.style.left)||4;
-    const pct = (newX-4)/Math.max(1,maxX()-4);
-    if(pct>0.75){
-      addSheetOpen();
-    }
-    thumb.style.transition='left .3s cubic-bezier(.4,0,.2,1)';
-    thumb.style.left='4px';
-    thumb.style.background='var(--c1)';
-    thumb.style.boxShadow='0 4px 16px rgba(0,122,255,.45)';
-    setTimeout(()=>thumb.style.transition='',320);
+
+  function onEnd(e){
+    if(!active) return;
+    active = false;
+    e.stopPropagation();
+    const pct = (curX - 4) / Math.max(1, getMax() - 4);
+    const triggered = pct > 0.72;
+    // Snap back with spring
+    thumb.style.transition = 'left .35s cubic-bezier(.34,1.56,.64,1), background .2s, box-shadow .2s';
+    thumb.style.left        = '4px';
+    thumb.style.background  = 'var(--c1)';
+    thumb.style.boxShadow   = '0 4px 16px rgba(0,122,255,.45)';
+    setTimeout(()=>{ thumb.style.transition = 'none'; }, 380);
+    if(triggered) setTimeout(()=>addSheetOpen(), 120);
   }
-  thumb.addEventListener('mousedown', startDrag);
-  thumb.addEventListener('touchstart', startDrag, {passive:true});
+
+  // Use non-passive listeners on the wrap so we can preventDefault
+  wrap.addEventListener('touchstart',  onStart, {passive:false});
+  wrap.addEventListener('touchmove',   onMove,  {passive:false});
+  wrap.addEventListener('touchend',    onEnd,   {passive:false});
+  wrap.addEventListener('touchcancel', onEnd,   {passive:false});
+  // Mouse fallback
+  wrap.addEventListener('mousedown',   onStart);
+  document.addEventListener('mousemove', e=>{ if(active) onMove(e); });
+  document.addEventListener('mouseup',   e=>{ if(active) onEnd(e); });
 })();
 
 // ── Add flow ──────────────────────────────────────────────────────────────────
@@ -2164,6 +2193,7 @@ function changePinOpen(){
   document.getElementById('cp-current').value='';
   document.getElementById('cp-new').value='';
   document.getElementById('cp-confirm').value='';
+  document.getElementById('cp-hint').value=_getHint();
   document.getElementById('cp-err').textContent='';
   document.getElementById('changepin-backdrop').style.opacity='1';
   document.getElementById('changepin-backdrop').style.pointerEvents='all';
@@ -2179,11 +2209,13 @@ function changePinSave(){
   const cur = document.getElementById('cp-current').value;
   const nw  = document.getElementById('cp-new').value.trim();
   const conf= document.getElementById('cp-confirm').value.trim();
+  const hint= document.getElementById('cp-hint').value.trim();
   const err = document.getElementById('cp-err');
   if(cur !== _getPin()){ err.textContent='Current PIN is incorrect'; return; }
   if(nw.length < 6){ err.textContent='New PIN must be at least 6 characters'; return; }
   if(nw !== conf){ err.textContent="PINs don't match"; return; }
   _setPin(nw);
+  _setHint(hint);
   changePinClose();
   showToast('PIN updated ✓');
 }
@@ -2542,34 +2574,118 @@ function infoSave(){
 
 // ── Lock screen ───────────────────────────────────────────────────────────────
 const LOCK_KEY = 'reach_pin';
-let _lockMode = 'enter'; // 'enter' | 'set' | 'confirm'
-let _lockPending = '';   // PIN typed in set step, awaiting confirm
+function _getPin(){ try{ return localStorage.getItem(LOCK_KEY)||''; }catch{ return ''; } }
+function _setPin(p){ try{ localStorage.setItem(LOCK_KEY,p); }catch{} }
+function _getHint(){ try{ return localStorage.getItem(LOCK_KEY+'_hint')||''; }catch{ return ''; } }
+function _setHint(h){ try{ if(h) localStorage.setItem(LOCK_KEY+'_hint',h); else localStorage.removeItem(LOCK_KEY+'_hint'); }catch{} }
+
+let _lockMode = 'enter';
+let _lockPending = '';
 let _lockVisible = false;
 let _lockFails = 0;
 
 function lockInit(){
   const screen = document.getElementById('lock-screen');
   const stored = _getPin();
+  const hintInp = document.getElementById('lock-hint-input');
+  const hintLbl = document.getElementById('lock-hint-label');
 
   if(!stored){
-    // First launch — set a PIN
     _lockMode = 'set';
     document.getElementById('lock-sub').textContent = 'Create your PIN (letters + numbers, e.g. A121212)';
     document.getElementById('lock-btn').textContent = 'Set PIN';
     document.getElementById('lock-hint').textContent = 'Min 6 characters';
+    hintInp.style.display = 'block';
+    hintLbl.style.display = 'block';
+    hintInp.value = _getHint();
   } else {
     _lockMode = 'enter';
     document.getElementById('lock-sub').textContent = 'Enter your PIN to continue';
     document.getElementById('lock-btn').textContent = 'Unlock';
     document.getElementById('lock-hint').textContent = '';
+    hintInp.style.display = 'none';
+    hintLbl.style.display = 'none';
   }
   lockBuildDots();
   screen.style.display = 'flex';
   setTimeout(()=>document.getElementById('lock-input').focus(), 300);
 }
 
-function _getPin(){ try{ return localStorage.getItem(LOCK_KEY)||''; }catch{ return ''; } }
-function _setPin(p){ try{ localStorage.setItem(LOCK_KEY,p); }catch{} }
+function lockSubmit(){
+  const inp = document.getElementById('lock-input');
+  const val = inp.value.trim();
+  const errEl = document.getElementById('lock-err');
+  const hintEl = document.getElementById('lock-hint');
+  const hintInp = document.getElementById('lock-hint-input');
+  const hintLbl = document.getElementById('lock-hint-label');
+
+  if(_lockMode === 'enter'){
+    const stored = _getPin();
+    if(val === stored){
+      lockUnlock();
+    } else {
+      _lockFails++;
+      inp.classList.add('error');
+      errEl.textContent = _lockFails >= 5
+        ? `Incorrect PIN (${_lockFails} attempts)`
+        : 'Incorrect PIN';
+      document.getElementById('lock-dots').querySelectorAll('.lock-dot').forEach(d=>d.classList.add('error'));
+      // Show hint after 2 failures
+      if(_lockFails >= 2){
+        const hint = _getHint();
+        if(hint) hintEl.textContent = '💡 Hint: ' + hint;
+      }
+      setTimeout(()=>{
+        inp.classList.remove('error');
+        inp.value='';
+        lockBuildDots();
+      }, 600);
+    }
+
+  } else if(_lockMode === 'set'){
+    if(val.length < 6){
+      inp.classList.add('error');
+      errEl.textContent = 'PIN must be at least 6 characters';
+      setTimeout(()=>inp.classList.remove('error'), 500);
+      return;
+    }
+    _lockPending = val;
+    _lockMode = 'confirm';
+    inp.value = '';
+    lockBuildDots();
+    document.getElementById('lock-sub').textContent = 'Confirm your PIN';
+    document.getElementById('lock-btn').textContent = 'Confirm';
+    hintEl.textContent = 'Type it again';
+    hintInp.style.display = 'none';
+    hintLbl.style.display = 'none';
+    errEl.textContent = '';
+
+  } else if(_lockMode === 'confirm'){
+    if(val === _lockPending){
+      _setPin(val);
+      // Save hint from input
+      const hintVal = document.getElementById('lock-hint-input').value.trim();
+      _setHint(hintVal);
+      _lockMode = 'enter';
+      lockUnlock();
+    } else {
+      inp.classList.add('error');
+      errEl.textContent = "PINs don't match — try again";
+      setTimeout(()=>{
+        inp.classList.remove('error');
+        inp.value='';
+        lockBuildDots();
+        _lockMode='set';
+        _lockPending='';
+        document.getElementById('lock-sub').textContent='Create your PIN (letters + numbers)';
+        document.getElementById('lock-btn').textContent='Set PIN';
+        hintEl.textContent='Min 6 characters';
+        hintInp.style.display='block';
+        hintLbl.style.display='block';
+      }, 700);
+    }
+  }
+}
 
 function lockBuildDots(){
   const val = document.getElementById('lock-input').value;
@@ -2597,67 +2713,6 @@ function lockToggleEye(){
   icon.innerHTML = _lockVisible
     ? `<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`
     : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>`;
-}
-
-function lockSubmit(){
-  const inp = document.getElementById('lock-input');
-  const val = inp.value.trim();
-  const errEl = document.getElementById('lock-err');
-
-  if(_lockMode === 'enter'){
-    const stored = _getPin();
-    if(val === stored){
-      lockUnlock();
-    } else {
-      _lockFails++;
-      inp.classList.add('error');
-      errEl.textContent = _lockFails >= 5
-        ? `Incorrect PIN (${_lockFails} attempts)`
-        : 'Incorrect PIN';
-      document.getElementById('lock-dots').querySelectorAll('.lock-dot').forEach(d=>d.classList.add('error'));
-      setTimeout(()=>{
-        inp.classList.remove('error');
-        inp.value='';
-        lockBuildDots();
-      }, 600);
-    }
-
-  } else if(_lockMode === 'set'){
-    if(val.length < 6){
-      inp.classList.add('error');
-      errEl.textContent = 'PIN must be at least 6 characters';
-      setTimeout(()=>inp.classList.remove('error'), 500);
-      return;
-    }
-    _lockPending = val;
-    _lockMode = 'confirm';
-    inp.value = '';
-    lockBuildDots();
-    document.getElementById('lock-sub').textContent = 'Confirm your PIN';
-    document.getElementById('lock-btn').textContent = 'Confirm';
-    document.getElementById('lock-hint').textContent = 'Type it again';
-    errEl.textContent = '';
-
-  } else if(_lockMode === 'confirm'){
-    if(val === _lockPending){
-      _setPin(val);
-      _lockMode = 'enter';
-      lockUnlock();
-    } else {
-      inp.classList.add('error');
-      errEl.textContent = "PINs don't match — try again";
-      setTimeout(()=>{
-        inp.classList.remove('error');
-        inp.value='';
-        lockBuildDots();
-        _lockMode='set';
-        _lockPending='';
-        document.getElementById('lock-sub').textContent='Create your PIN (letters + numbers)';
-        document.getElementById('lock-btn').textContent='Set PIN';
-        document.getElementById('lock-hint').textContent='Min 6 characters';
-      }, 700);
-    }
-  }
 }
 
 function lockUnlock(){
