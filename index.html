@@ -98,12 +98,12 @@ body::before {
 #screens {
   display: flex;
   height: 100%;
-  width: 300%;
+  width: 500%;
   transition: transform .42s cubic-bezier(.4, 0, .2, 1);
   will-change: transform;
 }
 .screen {
-  width: calc(100% / 3);
+  width: 20%;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
@@ -1063,10 +1063,122 @@ body::before {
   border-color: var(--red);
 }
 
+@keyframes slideUp {
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-in { animation: slideUp .3s ease both; }
+
+/* ══ NEW MEETING SHEET ══ */
+#nm-sheet-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.35);
+  z-index: 200; opacity: 0; pointer-events: none;
+  transition: opacity .25s; backdrop-filter: blur(4px);
+}
+#nm-sheet-backdrop.show { opacity: 1; pointer-events: all; }
+#nm-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 201;
+  transform: translateY(100%);
+  transition: transform .38s cubic-bezier(.4,0,.2,1);
+  padding: 0 12px calc(var(--safe-bot) + 8px);
+}
+#nm-sheet.show { transform: translateY(0); }
+#nm-sheet-card {
+  background: rgba(255,255,255,.96);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: var(--r-lg);
+  padding: 20px 20px 24px;
+  box-shadow: 0 -4px 40px rgba(0,0,0,.15);
+}
+.nm-attendee-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px 5px 6px; border-radius: 100px;
+  font-size: 12px; font-weight: 700; color: #fff; cursor: pointer;
+}
+.nm-attendee-chip span { opacity: .7; font-size: 13px; }
+
+/* ══ NEW MEETING SHEET ══ end */
+/* ══ SETTINGS SCREEN ══ start */
+.settings-section { margin-bottom: 24px; }
+.settings-section-title {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text3); margin-bottom: 10px; padding: 0 4px; font-family: var(--mono);
+}
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid rgba(0,0,0,.05);
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row-label { font-size: 15px; font-weight: 600; color: var(--text); }
+.settings-row-sub { font-size: 12px; color: var(--text3); margin-top: 2px; font-weight: 500; }
+.settings-row-right { flex-shrink: 0; margin-left: 12px; }
+.accent-swatch {
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  transition: transform .15s, box-shadow .15s; border: 2px solid transparent;
+  flex-shrink: 0;
+}
+.accent-swatch.sel { transform: scale(1.18); box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px currentColor; }
+.font-chip {
+  padding: 8px 14px; border-radius: 100px;
+  border: 1.5px solid var(--border);
+  background: var(--glass-bg2); font-size: 13px; font-weight: 600;
+  color: var(--text2); cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.font-chip.sel { border-color: var(--c1); background: var(--c1-soft); color: var(--c1); }
+.settings-danger-btn {
+  width: 100%; padding: 15px; border-radius: 14px;
+  font-size: 15px; font-weight: 700; border: none; cursor: pointer;
+  font-family: var(--font); transition: transform .12s;
+}
+.settings-danger-btn:active { transform: scale(.97); }
+
+/* ══ MEETINGS SCREEN ══ */
+.meeting-card {
+  padding: 16px; margin-bottom: 10px; position: relative;
+  transition: transform .12s;
+}
+.meeting-card:active { transform: scale(.99); }
+.meeting-card-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.meeting-date-badge {
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--c1-soft); border-radius: 12px;
+  padding: 8px 12px; flex-shrink: 0; min-width: 52px;
+}
+.meeting-date-day { font-size: 22px; font-weight: 800; color: var(--c1); line-height: 1; }
+.meeting-date-mon { font-size: 10px; font-weight: 700; color: var(--c1); letter-spacing: .06em; text-transform: uppercase; font-family: var(--mono); }
+.meeting-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.meeting-meta { font-size: 12px; color: var(--text3); font-weight: 500; }
+.meeting-intent-tag {
+  display: inline-block; padding: 3px 10px; border-radius: 100px;
+  font-size: 11px; font-weight: 700; background: rgba(88,86,214,.1); color: var(--c2);
+  margin-bottom: 8px; font-family: var(--mono);
+}
+.meeting-url-row {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--c1); font-weight: 600;
+}
+.meeting-attendee-row { display: flex; align-items: center; gap: -4px; margin-top: 8px; }
+.meeting-avatar-sm {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: #fff; margin-left: -6px; flex-shrink: 0;
+}
+.meeting-avatar-sm:first-child { margin-left: 0; }
+.meeting-today-glow { animation: glowPulse 2.4s ease-in-out infinite; border: 1px solid rgba(0,122,255,.3); }
+
+/* New meeting FAB */
+#new-meeting-btn {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 16px 18px; border-radius: 18px;
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  color: #fff; border: none; cursor: pointer; font-family: var(--font);
+  font-size: 15px; font-weight: 700; letter-spacing: -.1px;
+  box-shadow: 0 6px 24px rgba(0,122,255,.35);
+  transition: transform .12s, box-shadow .12s; margin-bottom: 6px;
+}
+#new-meeting-btn:active { transform: scale(.98); box-shadow: 0 3px 12px rgba(0,122,255,.25); }
 </style>
 </head>
 <body>
@@ -1114,6 +1226,13 @@ body::before {
           </div>
         </div>
 
+        <!-- New Meeting -->
+        <div class="home-section-label">Schedule</div>
+        <button id="new-meeting-btn" onclick="newMeetingOpen()">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#fff" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="2" x2="8" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="10" x2="21" y2="10" stroke="#fff" stroke-width="2"/></svg>
+          New Meeting
+        </button>
+
         <!-- Recent leads preview -->
         <div class="home-section-label">Recent</div>
         <div class="glass" id="home-recent" style="overflow:hidden;margin-bottom:24px;"></div>
@@ -1130,6 +1249,16 @@ body::before {
         <div class="glass" id="leads-list" style="overflow:hidden;"></div>
       </div>
 
+      <!-- ══ MEETINGS ══ -->
+      <div class="screen" id="screen-meetings">
+        <div class="screen-title">Meetings</div>
+        <div class="sort-row">
+          <button class="sort-chip active" id="msort-upcoming" onclick="setMeetSort('upcoming')">Upcoming</button>
+          <button class="sort-chip" id="msort-all" onclick="setMeetSort('all')">All</button>
+        </div>
+        <div id="meetings-list"></div>
+      </div>
+
       <!-- ══ MESSAGES ══ -->
       <div class="screen" id="screen-messages">
         <div class="screen-title">Messages</div>
@@ -1138,6 +1267,68 @@ body::before {
         <button id="msg-fab" onclick="tmplSheetOpen()">
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
         </button>
+      </div>
+
+      <!-- ══ SETTINGS ══ -->
+      <div class="screen" id="screen-settings">
+        <div class="screen-title">Settings</div>
+
+        <!-- Profile -->
+        <div class="settings-section">
+          <div class="settings-section-title">Profile</div>
+          <div class="glass" style="overflow:hidden;">
+            <div class="settings-row">
+              <div>
+                <div class="settings-row-label">Display Name</div>
+                <div class="settings-row-sub">Shown in greetings</div>
+              </div>
+              <input id="settings-name" style="border:1.5px solid var(--border);background:var(--glass-bg2);border-radius:10px;padding:8px 12px;font-size:14px;font-weight:600;color:var(--text);font-family:var(--font);outline:none;width:120px;text-align:right;" placeholder="Your name" oninput="settingsDirty()">
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-row-label">Change PIN</div><div class="settings-row-sub">Update your lock code</div></div>
+              <button class="settings-row-right" onclick="changePinOpen()" style="padding:8px 16px;border-radius:10px;background:var(--c1-soft);color:var(--c1);font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);">Change</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Appearance -->
+        <div class="settings-section">
+          <div class="settings-section-title">Appearance</div>
+          <div class="glass" style="overflow:hidden;">
+            <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
+              <div class="settings-row-label">Accent Color</div>
+              <div id="accent-swatches" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+            </div>
+            <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px;border-bottom:none;">
+              <div class="settings-row-label">Font</div>
+              <div id="font-chips" style="display:flex;gap:8px;flex-wrap:wrap;overflow-x:auto;padding-bottom:2px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data -->
+        <div class="settings-section">
+          <div class="settings-section-title">Data</div>
+          <div class="glass" style="overflow:hidden;">
+            <div class="settings-row">
+              <div><div class="settings-row-label">Save Profile</div><div class="settings-row-sub">Sync name & preferences</div></div>
+              <button id="save-profile-btn" onclick="saveProfile()" style="padding:8px 16px;border-radius:10px;background:var(--c3);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);">Save</button>
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-row-label">Export Data</div><div class="settings-row-sub">Download leads & meetings as JSON</div></div>
+              <button onclick="exportData()" style="padding:8px 16px;border-radius:10px;background:var(--glass-bg2);border:1px solid var(--border);color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);">Export</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="settings-section">
+          <div class="settings-section-title">Account</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="settings-danger-btn" onclick="doLogout()" style="background:var(--glass-bg);border:1.5px solid var(--border);color:var(--text2);">Lock App</button>
+            <button class="settings-danger-btn" onclick="deleteProfile()" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:var(--red);">Delete All Data</button>
+          </div>
+        </div>
       </div>
 
     </div><!-- /screens -->
@@ -1158,11 +1349,24 @@ body::before {
       <div class="tab-dot" id="leads-dot"></div>
       Leads
     </button>
-    <button class="tab-btn" id="tab-messages" onclick="navTab(2)">
+    <button class="tab-btn" id="tab-meetings" onclick="navTab(2)">
+      <div class="tab-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/></svg>
+      </div>
+      <div class="tab-dot" id="meetings-dot"></div>
+      Meetings
+    </button>
+    <button class="tab-btn" id="tab-messages" onclick="navTab(3)">
       <div class="tab-icon">
         <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
       </div>
       Messages
+    </button>
+    <button class="tab-btn" id="tab-settings" onclick="navTab(4)">
+      <div class="tab-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/></svg>
+      </div>
+      Settings
     </button>
   </div>
 </div>
@@ -1312,6 +1516,112 @@ body::before {
   </div>
 </div>
 
+<!-- ══ NEW MEETING SHEET ══ -->
+<div id="nm-sheet-backdrop" onclick="newMeetingClose()"></div>
+<div id="nm-sheet">
+  <div id="nm-sheet-card">
+    <div class="sheet-handle"></div>
+    <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;margin-bottom:4px;">New Meeting</div>
+    <div style="font-size:13px;color:var(--text3);font-weight:500;margin-bottom:18px;">Plan your next conversation.</div>
+
+    <div style="overflow-y:auto;max-height:62vh;padding-right:2px;" id="nm-scroll">
+
+      <!-- Title -->
+      <div class="info-section-label">Meeting Title</div>
+      <input class="info-input" id="nm-title" placeholder="e.g. Intro Call with Sarah" autocomplete="off">
+
+      <!-- Attendees -->
+      <div class="info-section-label">Attendees</div>
+      <div id="nm-attendees-wrap" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;" onclick="nmAttendeePicker()"></div>
+      <button onclick="nmAttendeePicker()" style="width:100%;padding:10px;border-radius:12px;border:1.5px dashed var(--border);background:transparent;color:var(--text3);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);">+ Add Attendees from Leads</button>
+
+      <!-- Intention -->
+      <div class="info-section-label">Intention</div>
+      <select class="info-input info-select" id="nm-intent">
+        <option value="">Select intention...</option>
+        <option>Introductory call</option>
+        <option>Collaboration discussion</option>
+        <option>Project review</option>
+        <option>Follow-up</option>
+        <option>Pitch / proposal</option>
+        <option>Feedback session</option>
+        <option>Onboarding check-in</option>
+        <option>Contract discussion</option>
+        <option>Brainstorm session</option>
+        <option>Closing / next steps</option>
+        <option value="__custom__">Custom...</option>
+      </select>
+      <input class="info-input" id="nm-intent-custom" placeholder="Describe your intention..." style="display:none;" autocomplete="off">
+
+      <!-- Duration + Date -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div class="info-section-label">Duration</div>
+          <select class="info-input info-select" id="nm-duration">
+            <option value="15">15 min</option>
+            <option value="30" selected>30 min</option>
+            <option value="45">45 min</option>
+            <option value="60">1 hour</option>
+            <option value="90">1.5 hours</option>
+            <option value="120">2 hours</option>
+          </select>
+        </div>
+        <div>
+          <div class="info-section-label">Date & Time</div>
+          <input class="info-input" id="nm-date" type="datetime-local">
+        </div>
+      </div>
+
+      <!-- Location type -->
+      <div class="info-section-label">Location</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <button id="nm-loc-virtual" onclick="nmSetLocType('virtual')" class="type-chip sel" style="flex:1;">Virtual</button>
+        <button id="nm-loc-inperson" onclick="nmSetLocType('inperson')" class="type-chip" style="flex:1;">In Person</button>
+      </div>
+      <input class="info-input" id="nm-url" placeholder="Paste Google Meet URL..." style="font-family:var(--mono);font-size:13px;" autocomplete="off">
+      <input class="info-input" id="nm-address" placeholder="Address or venue..." style="display:none;" autocomplete="off">
+
+      <!-- Notes -->
+      <div class="info-section-label">Notes (optional)</div>
+      <textarea class="info-input info-textarea" id="nm-notes" placeholder="Agenda, prep notes..."></textarea>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button style="flex:1;padding:14px;border-radius:14px;background:var(--bg2);color:var(--text2);font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);" onclick="newMeetingClose()">Cancel</button>
+      <button style="flex:2;padding:14px;border-radius:14px;background:linear-gradient(135deg,var(--c1),var(--c2));color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);box-shadow:0 4px 20px rgba(0,122,255,.4);" onclick="newMeetingSave()">Add Meeting</button>
+    </div>
+  </div>
+</div>
+
+<!-- Attendee picker sheet -->
+<div id="nm-picker-backdrop" onclick="nmPickerClose()" style="position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(4px);"></div>
+<div id="nm-picker" style="position:fixed;bottom:0;left:0;right:0;z-index:301;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);padding:0 12px calc(var(--safe-bot)+8px);">
+  <div style="background:rgba(255,255,255,.96);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border:1px solid rgba(255,255,255,.9);border-radius:var(--r-lg);padding:20px 20px 24px;box-shadow:0 -4px 40px rgba(0,0,0,.15);">
+    <div class="sheet-handle"></div>
+    <div style="font-size:18px;font-weight:800;margin-bottom:14px;">Select Attendees</div>
+    <div id="nm-picker-list" style="max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px;"></div>
+    <button onclick="nmPickerClose()" style="width:100%;margin-top:14px;padding:14px;border-radius:14px;background:var(--c1);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);">Done</button>
+  </div>
+</div>
+
+<!-- Change PIN sheet -->
+<div id="changepin-backdrop" onclick="changePinClose()" style="position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(4px);"></div>
+<div id="changepin-sheet" style="position:fixed;bottom:0;left:0;right:0;z-index:301;transform:translateY(100%);transition:transform .38s cubic-bezier(.4,0,.2,1);padding:0 12px calc(var(--safe-bot)+8px);">
+  <div style="background:rgba(255,255,255,.96);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border:1px solid rgba(255,255,255,.9);border-radius:var(--r-lg);padding:20px 20px 24px;box-shadow:0 -4px 40px rgba(0,0,0,.15);">
+    <div class="sheet-handle"></div>
+    <div style="font-size:20px;font-weight:800;margin-bottom:6px;">Change PIN</div>
+    <div style="font-size:13px;color:var(--text3);font-weight:500;margin-bottom:18px;">Enter your current PIN, then set a new one.</div>
+    <input class="info-input" id="cp-current" type="password" placeholder="Current PIN" autocomplete="off" style="font-family:var(--mono);letter-spacing:.1em;">
+    <input class="info-input" id="cp-new" type="password" placeholder="New PIN (min 6 chars)" autocomplete="off" style="font-family:var(--mono);letter-spacing:.1em;">
+    <input class="info-input" id="cp-confirm" type="password" placeholder="Confirm new PIN" autocomplete="off" style="font-family:var(--mono);letter-spacing:.1em;" onkeydown="if(event.key==='Enter')changePinSave()">
+    <div style="color:var(--red);font-size:13px;font-weight:600;min-height:18px;margin-bottom:10px;" id="cp-err"></div>
+    <div style="display:flex;gap:8px;">
+      <button style="flex:1;padding:14px;border-radius:14px;background:var(--bg2);color:var(--text2);font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);" onclick="changePinClose()">Cancel</button>
+      <button style="flex:2;padding:14px;border-radius:14px;background:var(--c1);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);box-shadow:0 4px 16px rgba(0,122,255,.35);" onclick="changePinSave()">Update PIN</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ TEMPLATE SHEET ══ -->
 <div id="tmpl-sheet-backdrop" onclick="tmplSheetClose()"></div>
 <div id="tmpl-sheet">
@@ -1370,10 +1680,6 @@ function avatarColor(name){ let h=0; for(let c of name||'?')h=(h*31+c.charCodeAt
 
 // ── Greeting ─────────────────────────────────────────────────────────────────
 function initGreeting(){
-  const h = new Date().getHours();
-  const g = h<12?'Good morning':'h<18'?'Good afternoon':'Good evening';
-  const greet = h<12?'Good morning ✦':h<18?'Good afternoon ✦':'Good evening ✦';
-  document.getElementById('home-greeting').textContent = greet;
   const d = new Date();
   const opts = {weekday:'long',month:'long',day:'numeric'};
   document.getElementById('home-date').textContent = d.toLocaleDateString('en-US',opts);
@@ -1381,14 +1687,17 @@ function initGreeting(){
 
 // ── Tab navigation ────────────────────────────────────────────────────────────
 let _currentTab = 0;
-const tabs = ['tab-home','tab-leads','tab-messages'];
+const tabs = ['tab-home','tab-leads','tab-meetings','tab-messages','tab-settings'];
+const TAB_COUNT = 5;
 
 function navTab(idx){
   _currentTab = idx;
-  document.getElementById('screens').style.transform = `translateX(-${idx*100/3}%)`;
+  document.getElementById('screens').style.transform = `translateX(-${idx*20}%)`;
   tabs.forEach((t,i) => document.getElementById(t).classList.toggle('active', i===idx));
   if(idx===1) renderLeads();
-  if(idx===2) renderTemplates();
+  if(idx===2) renderMeetings();
+  if(idx===3) renderTemplates();
+  if(idx===4) renderSettings();
 }
 
 // ── Swipe navigation ──────────────────────────────────────────────────────────
@@ -1405,9 +1714,9 @@ function navTab(idx){
       dragging=true;
     }
     if(dragging){
-      const base = startTab*100/3;
-      const pct = base - (dx/wrap.clientWidth)*100/3;
-      const clamped = Math.max(0, Math.min(200/3, pct));
+      const base = startTab*20;
+      const pct = base - (dx/wrap.clientWidth)*20;
+      const clamped = Math.max(0, Math.min(80, pct));
       document.getElementById('screens').style.transition='none';
       document.getElementById('screens').style.transform=`translateX(-${clamped}%)`;
     }
@@ -1416,7 +1725,7 @@ function navTab(idx){
     if(!dragging) return;
     document.getElementById('screens').style.transition='';
     const dx=e.changedTouches[0].clientX-sx;
-    if(dx<-50 && _currentTab<2) navTab(_currentTab+1);
+    if(dx<-50 && _currentTab<TAB_COUNT-1) navTab(_currentTab+1);
     else if(dx>50 && _currentTab>0) navTab(_currentTab-1);
     else navTab(_currentTab);
   });
@@ -1548,36 +1857,374 @@ function addSave(){
   setTimeout(()=>document.getElementById('leads-dot').classList.remove('show'), 3000);
 }
 
-// ── Home render ───────────────────────────────────────────────────────────────
+// ── Meetings DB ───────────────────────────────────────────────────────────────
+const DB_meetings = {
+  get all() { try{return JSON.parse(localStorage.getItem('reach_meetings')||'[]');}catch{return[];} },
+  set all(v){ try{localStorage.setItem('reach_meetings',JSON.stringify(v));}catch{} },
+};
+
+// ── Meetings render ───────────────────────────────────────────────────────────
+let _meetSort = 'upcoming';
+function setMeetSort(s){
+  _meetSort = s;
+  ['upcoming','all'].forEach(x=>document.getElementById('msort-'+x)?.classList.toggle('active', x===s));
+  renderMeetings();
+}
+
+function renderMeetings(){
+  const now = new Date();
+  let meetings = DB_meetings.all;
+  if(_meetSort==='upcoming') meetings = meetings.filter(m=>new Date(m.date)>=now).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  else meetings = meetings.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  const el = document.getElementById('meetings-list');
+  if(!meetings.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-title">No meetings yet</div><div class="empty-sub">Tap New Meeting on the home screen to schedule one.</div></div>`;
+    return;
+  }
+  const today = new Date(); today.setHours(0,0,0,0);
+  el.innerHTML = meetings.map(m=>{
+    const dt = new Date(m.date);
+    const d = new Date(dt); d.setHours(0,0,0,0);
+    const isToday = d.toDateString()===today.toDateString();
+    const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()];
+    const time = dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    const attendees = (m.attendees||[]).slice(0,4);
+    const extra = (m.attendees||[]).length - 4;
+    const intentLabel = m.intent==='__custom__'?m.intentCustom:m.intent;
+    const locIcon = m.locType==='inperson'
+      ? `<svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="11" r="3" stroke="currentColor" stroke-width="2"/><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke="currentColor" stroke-width="2"/></svg>`
+      : `<svg width="13" height="13" fill="none" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="5" width="15" height="14" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const locVal = m.locType==='inperson' ? (m.address||'In Person') : (m.url||'Virtual');
+    return `<div class="glass meeting-card${isToday?' meeting-today-glow':''}" onclick="openMeetingDetail('${m.id}')">
+      <div class="meeting-card-top">
+        <div class="meeting-date-badge">
+          <div class="meeting-date-day">${dt.getDate()}</div>
+          <div class="meeting-date-mon">${mon}</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div class="meeting-title">${esc(m.title||'Meeting')}</div>
+          <div class="meeting-meta">${time} · ${m.duration} min</div>
+        </div>
+        ${isToday?`<span style="font-size:10px;font-weight:800;color:var(--c1);background:var(--c1-soft);padding:3px 8px;border-radius:100px;font-family:var(--mono);flex-shrink:0;">TODAY</span>`:''}
+      </div>
+      ${intentLabel?`<div class="meeting-intent-tag">${esc(intentLabel)}</div>`:''}
+      <div class="meeting-url-row">${locIcon}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;">${esc(locVal)}</span></div>
+      ${attendees.length?`<div class="meeting-attendee-row">
+        ${attendees.map(a=>`<div class="meeting-avatar-sm" style="background:${avatarColor(a)}">${a.charAt(0).toUpperCase()}</div>`).join('')}
+        ${extra>0?`<div class="meeting-avatar-sm" style="background:var(--text3)">+${extra}</div>`:''}
+        <span style="font-size:12px;color:var(--text3);margin-left:8px;font-weight:500;">${m.attendees.join(', ')}</span>
+      </div>`:''}
+      ${m.notes?`<div style="font-size:12px;color:var(--text3);margin-top:8px;font-weight:500;line-height:1.4;">${esc(m.notes)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function openMeetingDetail(id){
+  // For now just allow delete via a toast with confirm logic
+  const meetings = DB_meetings.all;
+  const m = meetings.find(x=>x.id===id);
+  if(!m) return;
+  // Could open a detail sheet — for now show quick actions
+  _activeMeetingId = id;
+  showToast('Long press to delete');
+}
+
+let _activeMeetingId = null;
+
+// ── New Meeting ───────────────────────────────────────────────────────────────
+let _nmAttendees = [];
+let _nmLocType = 'virtual';
+
+function newMeetingOpen(){
+  _nmAttendees = [];
+  _nmLocType = 'virtual';
+  document.getElementById('nm-title').value='';
+  document.getElementById('nm-intent').value='';
+  document.getElementById('nm-intent-custom').style.display='none';
+  document.getElementById('nm-duration').value='30';
+  document.getElementById('nm-date').value='';
+  document.getElementById('nm-url').value='';
+  document.getElementById('nm-address').value='';
+  document.getElementById('nm-notes').value='';
+  nmRenderAttendees();
+  nmSetLocType('virtual');
+  document.getElementById('nm-sheet-backdrop').classList.add('show');
+  document.getElementById('nm-sheet').classList.add('show');
+  setTimeout(()=>document.getElementById('nm-title').focus(), 380);
+}
+
+function newMeetingClose(){
+  document.getElementById('nm-sheet-backdrop').classList.remove('show');
+  document.getElementById('nm-sheet').classList.remove('show');
+}
+
+function nmSetLocType(t){
+  _nmLocType = t;
+  document.getElementById('nm-loc-virtual').classList.toggle('sel', t==='virtual');
+  document.getElementById('nm-loc-inperson').classList.toggle('sel', t==='inperson');
+  document.getElementById('nm-url').style.display = t==='virtual' ? '' : 'none';
+  document.getElementById('nm-address').style.display = t==='inperson' ? '' : 'none';
+}
+
+document.getElementById('nm-intent')?.addEventListener('change', function(){
+  document.getElementById('nm-intent-custom').style.display = this.value==='__custom__' ? '' : 'none';
+  if(this.value==='__custom__') setTimeout(()=>document.getElementById('nm-intent-custom').focus(), 60);
+});
+
+function nmRenderAttendees(){
+  const wrap = document.getElementById('nm-attendees-wrap');
+  wrap.innerHTML = _nmAttendees.map(a=>`
+    <span class="nm-attendee-chip" style="background:${avatarColor(a)}" onclick="nmRemoveAttendee('${a.replace(/'/g,"\\'")}')">
+      ${esc(a)} <span>×</span>
+    </span>`).join('');
+}
+
+function nmRemoveAttendee(name){ _nmAttendees=_nmAttendees.filter(a=>a!==name); nmRenderAttendees(); }
+
+function nmAttendeePicker(){
+  const leads = DB.leads;
+  const list = document.getElementById('nm-picker-list');
+  list.innerHTML = leads.map(l=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid rgba(0,0,0,.05);cursor:pointer;" onclick="nmToggleAttendee('${l.name.replace(/'/g,"\\'")}',this)">
+      <div style="width:36px;height:36px;border-radius:50%;background:${avatarColor(l.name)};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;">${l.name.charAt(0).toUpperCase()}</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:700;color:var(--text);">${esc(l.name)}</div>
+        <div style="font-size:12px;color:var(--text3);">${esc(l.type)}</div>
+      </div>
+      <div class="nm-check" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .15s;background:${_nmAttendees.includes(l.name)?'var(--c1)':'transparent'};border-color:${_nmAttendees.includes(l.name)?'var(--c1)':'var(--border)'};">
+        ${_nmAttendees.includes(l.name)?`<svg width="11" height="11" fill="none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`:''}
+      </div>
+    </div>`).join('') || '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">No leads yet</div>';
+  document.getElementById('nm-picker-backdrop').style.opacity='1';
+  document.getElementById('nm-picker-backdrop').style.pointerEvents='all';
+  document.getElementById('nm-picker').style.transform='translateY(0)';
+}
+
+function nmPickerClose(){
+  document.getElementById('nm-picker-backdrop').style.opacity='0';
+  document.getElementById('nm-picker-backdrop').style.pointerEvents='none';
+  document.getElementById('nm-picker').style.transform='translateY(100%)';
+  nmRenderAttendees();
+}
+
+function nmToggleAttendee(name, row){
+  if(_nmAttendees.includes(name)) _nmAttendees=_nmAttendees.filter(a=>a!==name);
+  else _nmAttendees.push(name);
+  const check = row.querySelector('.nm-check');
+  const sel = _nmAttendees.includes(name);
+  check.style.background = sel?'var(--c1)':'transparent';
+  check.style.borderColor = sel?'var(--c1)':'var(--border)';
+  check.innerHTML = sel?`<svg width="11" height="11" fill="none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`:'';
+}
+
+function newMeetingSave(){
+  const title = document.getElementById('nm-title').value.trim();
+  const date = document.getElementById('nm-date').value;
+  if(!title){ document.getElementById('nm-title').focus(); showToast('Add a title'); return; }
+  if(!date){ document.getElementById('nm-date').focus(); showToast('Set a date and time'); return; }
+  const intentVal = document.getElementById('nm-intent').value;
+  const intentCustom = document.getElementById('nm-intent-custom').value.trim();
+  const meetings = DB_meetings.all;
+  meetings.push({
+    id: uid(), title,
+    intent: intentVal, intentCustom,
+    duration: document.getElementById('nm-duration').value,
+    date: new Date(date).toISOString(),
+    locType: _nmLocType,
+    url: document.getElementById('nm-url').value.trim(),
+    address: document.getElementById('nm-address').value.trim(),
+    attendees: [..._nmAttendees],
+    notes: document.getElementById('nm-notes').value.trim(),
+    created: Date.now(),
+  });
+  DB_meetings.all = meetings;
+  newMeetingClose();
+  renderHome();
+  renderMeetings();
+  document.getElementById('meetings-dot').classList.add('show');
+  setTimeout(()=>document.getElementById('meetings-dot').classList.remove('show'), 3000);
+  showToast('Meeting added ✓');
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+const ACCENT_OPTIONS = [
+  {name:'Blue',   val:'#007AFF'},
+  {name:'Purple', val:'#5856D6'},
+  {name:'Pink',   val:'#FF2D55'},
+  {name:'Orange', val:'#FF9500'},
+  {name:'Green',  val:'#34C759'},
+  {name:'Teal',   val:'#00C7BE'},
+  {name:'Violet', val:'#AF52DE'},
+  {name:'Red',    val:'#FF3B30'},
+  {name:'Indigo', val:'#5C5CE0'},
+  {name:'Gold',   val:'#FFD60A'},
+];
+const FONT_OPTIONS = [
+  {name:'Jakarta', val:"'Plus Jakarta Sans', sans-serif"},
+  {name:'System',  val:"-apple-system, 'SF Pro Text', sans-serif"},
+  {name:'Rounded', val:"'SF Pro Rounded', 'Nunito', sans-serif"},
+  {name:'Mono',    val:"'DM Mono', monospace"},
+  {name:'Serif',   val:"Georgia, 'Times New Roman', serif"},
+];
+
+function renderSettings(){
+  const profile = _getProfile();
+  const nameEl = document.getElementById('settings-name');
+  if(nameEl && !nameEl.dataset.dirty) nameEl.value = profile.name||'';
+
+  // Accent swatches
+  const swatchWrap = document.getElementById('accent-swatches');
+  if(swatchWrap && !swatchWrap.dataset.built){
+    swatchWrap.dataset.built='1';
+    swatchWrap.innerHTML = ACCENT_OPTIONS.map(a=>`
+      <div class="accent-swatch${profile.accent===a.val?' sel':''}" style="background:${a.val};color:${a.val};"
+        onclick="applyAccent('${a.val}',this)" title="${a.name}"></div>`).join('');
+  }
+
+  // Font chips
+  const fontWrap = document.getElementById('font-chips');
+  if(fontWrap && !fontWrap.dataset.built){
+    fontWrap.dataset.built='1';
+    fontWrap.innerHTML = FONT_OPTIONS.map(f=>`
+      <button class="font-chip${profile.font===f.val?' sel':''}" style="font-family:${f.val}"
+        onclick="applyFont('${f.val.replace(/'/g,'"')}',this)">${f.name}</button>`).join('');
+  }
+}
+
+function settingsDirty(){ document.getElementById('settings-name').dataset.dirty='1'; }
+
+function applyAccent(val, el){
+  document.querySelectorAll('.accent-swatch').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
+  document.documentElement.style.setProperty('--c1', val);
+  document.documentElement.style.setProperty('--c1-soft', val+'20');
+  const p = _getProfile(); p.accent=val; _saveProfile(p);
+}
+
+function applyFont(val, el){
+  document.querySelectorAll('.font-chip').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  document.documentElement.style.setProperty('--font', val);
+  const p = _getProfile(); p.font=val; _saveProfile(p);
+}
+
+function saveProfile(){
+  const p = _getProfile();
+  const nameEl = document.getElementById('settings-name');
+  if(nameEl) p.name = nameEl.value.trim();
+  _saveProfile(p);
+  delete document.getElementById('settings-name').dataset.dirty;
+  showToast('Profile saved ✓');
+  renderHome();
+}
+
+function exportData(){
+  const data = {leads: DB.leads, meetings: DB_meetings.all, templates: DB.templates, profile: _getProfile()};
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '343reach_export_'+Date.now()+'.json';
+  a.click();
+  showToast('Exported!');
+}
+
+function doLogout(){
+  lockInit();
+  document.getElementById('lock-screen').style.display='flex';
+}
+
+function deleteProfile(){
+  // Re-use showConfirm via a simple double-tap pattern
+  if(!_deleteConfirmPending){
+    _deleteConfirmPending=true;
+    showToast('Tap again to delete all data');
+    setTimeout(()=>_deleteConfirmPending=false, 3000);
+    return;
+  }
+  _deleteConfirmPending=false;
+  try{
+    ['reach_leads','reach_meetings','reach_tmpl','reach_profile',LOCK_KEY].forEach(k=>localStorage.removeItem(k));
+  }catch(e){}
+  location.reload();
+}
+let _deleteConfirmPending = false;
+
+function _getProfile(){ try{return JSON.parse(localStorage.getItem('reach_profile')||'{}');}catch{return{};} }
+function _saveProfile(p){ try{localStorage.setItem('reach_profile',JSON.stringify(p));}catch{} }
+
+function applyStoredProfile(){
+  const p = _getProfile();
+  if(p.accent) document.documentElement.style.setProperty('--c1', p.accent);
+  if(p.font) document.documentElement.style.setProperty('--font', p.font);
+}
+
+// ── Change PIN ────────────────────────────────────────────────────────────────
+function changePinOpen(){
+  document.getElementById('cp-current').value='';
+  document.getElementById('cp-new').value='';
+  document.getElementById('cp-confirm').value='';
+  document.getElementById('cp-err').textContent='';
+  document.getElementById('changepin-backdrop').style.opacity='1';
+  document.getElementById('changepin-backdrop').style.pointerEvents='all';
+  document.getElementById('changepin-sheet').style.transform='translateY(0)';
+  setTimeout(()=>document.getElementById('cp-current').focus(), 380);
+}
+function changePinClose(){
+  document.getElementById('changepin-backdrop').style.opacity='0';
+  document.getElementById('changepin-backdrop').style.pointerEvents='none';
+  document.getElementById('changepin-sheet').style.transform='translateY(100%)';
+}
+function changePinSave(){
+  const cur = document.getElementById('cp-current').value;
+  const nw  = document.getElementById('cp-new').value.trim();
+  const conf= document.getElementById('cp-confirm').value.trim();
+  const err = document.getElementById('cp-err');
+  if(cur !== _getPin()){ err.textContent='Current PIN is incorrect'; return; }
+  if(nw.length < 6){ err.textContent='New PIN must be at least 6 characters'; return; }
+  if(nw !== conf){ err.textContent="PINs don't match"; return; }
+  _setPin(nw);
+  changePinClose();
+  showToast('PIN updated ✓');
+}
+
+// ── Update renderHome stat for meetings ───────────────────────────────────────
+
 function renderHome(){
   const leads = DB.leads;
+  const profile = _getProfile();
   document.getElementById('stat-leads').textContent = leads.length;
-  document.getElementById('stat-meetings').textContent = leads.filter(l=>l.meeting).length;
+  document.getElementById('stat-meetings').textContent = DB_meetings.all.length;
   document.getElementById('stat-templates').textContent = DB.templates.length;
 
-  // Reminders
+  // Greeting with name
+  const h = new Date().getHours();
+  const greet = h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  document.getElementById('home-greeting').textContent = greet+(profile.name?', '+profile.name:'')+' ✦';
+
+  // Reminders — from DB_meetings
   const now = new Date();
   const today = new Date(now); today.setHours(0,0,0,0);
-  const tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
   const dayAfter = new Date(today); dayAfter.setDate(today.getDate()+2);
 
   const remindEl = document.getElementById('home-reminders');
-  const reminderLeads = leads.filter(l=>{
-    if(!l.meeting?.date) return false;
-    const d = new Date(l.meeting.date); d.setHours(0,0,0,0);
+  const reminderMeetings = DB_meetings.all.filter(m=>{
+    if(!m.date) return false;
+    const d = new Date(m.date); d.setHours(0,0,0,0);
     return d >= today && d < dayAfter;
-  }).sort((a,b)=>new Date(a.meeting.date)-new Date(b.meeting.date));
+  }).sort((a,b)=>new Date(a.date)-new Date(b.date));
 
-  if(reminderLeads.length){
-    remindEl.innerHTML = reminderLeads.map(l=>{
-      const d = new Date(l.meeting.date); d.setHours(0,0,0,0);
+  if(reminderMeetings.length){
+    remindEl.innerHTML = reminderMeetings.map(m=>{
+      const d = new Date(m.date); d.setHours(0,0,0,0);
       const isToday = d.toDateString()===today.toDateString();
       const cls = isToday?'today':'tomorrow';
-      const timeStr = new Date(l.meeting.date).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      const timeStr = new Date(m.date).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      const locVal = m.locType==='inperson'?(m.address||'In Person'):(m.url||'Virtual');
       return `<div class="glass remind-card ${cls}">
-        <div class="remind-name">${esc(l.name)}</div>
-        <div class="remind-meta">${esc(l.type)} · ${timeStr}</div>
-        ${l.meeting.url?`<div class="remind-url">${esc(l.meeting.url)}</div>`:''}
+        <div class="remind-name">${esc(m.title||'Meeting')}</div>
+        <div class="remind-meta">${timeStr} · ${m.duration} min${m.attendees?.length?' · '+m.attendees.slice(0,2).join(', ')+(m.attendees.length>2?'…':''):''}</div>
+        ${locVal?`<div class="remind-url">${esc(locVal)}</div>`:''}
       </div>`;
     }).join('');
   } else {
@@ -2023,6 +2670,7 @@ function lockUnlock(){
 // ── Boot ──────────────────────────────────────────────────────────────────────
 initGreeting();
 seedTemplates();
+applyStoredProfile();
 renderHome();
 renderLeads();
 renderTemplates();
