@@ -94,6 +94,7 @@ body::before {
   overflow: hidden;
   position: relative;
   min-height: 0;
+  touch-action: pan-y;
 }
 #screens {
   display: flex;
@@ -1782,21 +1783,16 @@ function navTab(idx){
 (function initSwipe(){
   const wrap    = document.getElementById('screens-wrap');
   const screens = document.getElementById('screens');
-  let sx=0, sy=0, sTime=0, dragging=false, startTab=0, decided=false;
+  const TRANS   = 'transform .42s cubic-bezier(.4,0,.2,1)';
 
-  const TRANS = 'transform .42s cubic-bezier(.4,0,.2,1)';
-
-  function reset(){
-    dragging = false;
-    decided  = false;
-    screens.style.transition = TRANS;
-  }
+  let sx=0, sy=0, sTime=0;
+  let state = 'idle'; // 'idle' | 'horizontal' | 'vertical'
+  let startTab = 0;
 
   wrap.addEventListener('touchstart', e=>{
     const t = e.touches[0];
     sx = t.clientX; sy = t.clientY; sTime = Date.now();
-    dragging = false; decided = false;
-    startTab = _currentTab;
+    state = 'idle'; startTab = _currentTab;
     screens.style.transition = 'none';
   },{passive:true});
 
@@ -1804,44 +1800,49 @@ function navTab(idx){
     if(!e.touches[0]) return;
     const dx = e.touches[0].clientX - sx;
     const dy = e.touches[0].clientY - sy;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
 
-    if(!decided){
-      if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return; // haven't moved enough
-      if(Math.abs(dy) > Math.abs(dx) * 0.9){
-        // Clearly vertical — let native scroll handle it, bail out
-        reset();
+    if(state === 'idle'){
+      if(adx < 6 && ady < 6) return; // too small to decide
+      if(ady > adx){
+        // Vertical — hand back to browser, done
+        state = 'vertical';
+        screens.style.transition = TRANS;
         return;
       }
-      // Clearly horizontal — claim the gesture
-      if(Math.abs(dx) > Math.abs(dy) * 0.9){
-        dragging = true;
-        decided  = true;
-      }
+      // Horizontal — own this gesture
+      state = 'horizontal';
     }
 
-    if(dragging){
-      if(e.cancelable) e.preventDefault();
-      const base    = startTab * 20;
-      const pct     = base - (dx / wrap.clientWidth) * 20;
-      const clamped = Math.max(0, Math.min(80, pct));
-      screens.style.transform = `translateX(-${clamped}%)`;
-    }
+    if(state !== 'horizontal') return;
+
+    if(e.cancelable) e.preventDefault();
+    const w  = wrap.clientWidth || window.innerWidth;
+    const pct = Math.max(0, Math.min(80, startTab * 20 - (dx / w) * 20));
+    screens.style.transform = `translateX(-${pct}%)`;
   },{passive:false});
 
   function onEnd(e){
-    if(!dragging){ reset(); return; }
-    const dx       = (e.changedTouches[0]?.clientX ?? sx) - sx;
-    const velocity = Math.abs(dx) / Math.max(1, Date.now() - sTime); // px/ms
-    const threshold = velocity > 0.3 ? 20 : 50; // faster swipe = lower threshold
+    if(state !== 'horizontal'){
+      state = 'idle';
+      return;
+    }
+    state = 'idle';
+    const dx  = (e.changedTouches?.[0]?.clientX ?? sx) - sx;
+    const vel = Math.abs(dx) / Math.max(1, Date.now() - sTime);
+    const thr = vel > 0.4 ? 15 : 48;
     screens.style.transition = TRANS;
-    if(dx < -threshold && _currentTab < TAB_COUNT - 1) navTab(_currentTab + 1);
-    else if(dx > threshold && _currentTab > 0) navTab(_currentTab - 1);
-    else navTab(_currentTab); // snap back
-    dragging = false; decided = false;
+    if(dx < -thr && _currentTab < TAB_COUNT - 1) navTab(_currentTab + 1);
+    else if(dx > thr && _currentTab > 0)          navTab(_currentTab - 1);
+    else                                           navTab(_currentTab);
   }
 
   wrap.addEventListener('touchend',    onEnd, {passive:true});
-  wrap.addEventListener('touchcancel', ()=>{ reset(); navTab(_currentTab); }, {passive:true});
+  wrap.addEventListener('touchcancel', ()=>{
+    state = 'idle';
+    screens.style.transition = TRANS;
+    navTab(_currentTab);
+  }, {passive:true});
 })();
 
 // ── Slide to add ──────────────────────────────────────────────────────────────
