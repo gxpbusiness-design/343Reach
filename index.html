@@ -849,7 +849,45 @@ body::before {
 .detail-btn-ghost { background: var(--bg2); color: var(--text2); }
 .detail-btn-danger { background: rgba(255,59,48,.08); color: var(--red); border: 1px solid rgba(255,59,48,.2); }
 
-/* ══ INFO EDIT SHEET ══ */
+/* ══ TO-DO ══ */
+.todo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: var(--glass-bg2);
+  border: 1.5px solid var(--border);
+  margin-bottom: 6px;
+  transition: background .15s, border-color .15s;
+}
+.todo-row.age-fresh  { border-color: var(--border); }
+.todo-row.age-yellow { background: rgba(255,149,0,.07); border-color: rgba(255,149,0,.35); }
+.todo-row.age-red    { background: rgba(255,59,48,.07); border-color: rgba(255,59,48,.35); }
+.todo-row.age-dark   { background: rgba(120,0,0,.08);  border-color: rgba(160,0,0,.4); }
+.todo-row.done-row   { opacity: .45; }
+.todo-check {
+  width: 20px; height: 20px; border-radius: 6px;
+  border: 2px solid var(--border2); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .15s; background: transparent;
+}
+.todo-check.checked { background: var(--c3); border-color: var(--c3); }
+.todo-text {
+  flex: 1; font-size: 13.5px; font-weight: 500; color: var(--text);
+  line-height: 1.35;
+}
+.todo-text.done-text { text-decoration: line-through; color: var(--text3); }
+.todo-age-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.todo-del {
+  background: none; border: none; cursor: pointer;
+  color: var(--text4); font-size: 16px; line-height: 1;
+  padding: 2px 4px; border-radius: 4px; transition: color .1s;
+}
+.todo-del:active { color: var(--red); }
+
 #info-sheet-backdrop {
   position: fixed; inset: 0;
   background: rgba(0,0,0,.35);
@@ -1456,6 +1494,20 @@ body::before {
       <div id="detail-meet-time" style="font-size:14px;font-weight:600;color:var(--text);"></div>
       <div id="detail-meet-url" style="font-size:12px;color:var(--c1);margin-top:3px;word-break:break-all;"></div>
     </div>
+    <!-- To-do list -->
+    <div id="detail-todos-wrap" style="width:100%;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);">To-Do</div>
+        <button onclick="todoAddRow()" style="font-size:12px;font-weight:700;color:var(--c1);background:var(--c1-soft);border:none;border-radius:100px;padding:4px 12px;cursor:pointer;font-family:var(--font);">+ Add</button>
+      </div>
+      <div id="detail-todos"></div>
+      <div id="detail-todo-input-row" style="display:none;gap:8px;margin-top:6px;">
+        <input id="detail-todo-input" class="info-input" style="margin-bottom:0;flex:1;" placeholder="What needs to get done..." autocomplete="off"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();todoSave();}if(event.key==='Escape')todoHideInput();">
+        <button onclick="todoSave()" style="padding:10px 14px;border-radius:12px;background:var(--c1);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);flex-shrink:0;">Add</button>
+      </div>
+    </div>
+
     <div class="detail-actions">
       <button class="detail-btn detail-btn-primary" id="detail-meet-btn" onclick="openMeetFromDetail()">
         Schedule Meeting
@@ -2317,6 +2369,91 @@ function renderLeads(){
   }).join('');
 }
 
+// ── To-dos ────────────────────────────────────────────────────────────────────
+function _todoAgeClass(createdAt){
+  const hrs = (Date.now() - createdAt) / 3600000;
+  if(hrs >= 72) return 'age-dark';
+  if(hrs >= 24) return 'age-red';
+  if(hrs >= 12) return 'age-yellow';
+  return 'age-fresh';
+}
+function _todoAgeDotColor(createdAt){
+  const hrs = (Date.now() - createdAt) / 3600000;
+  if(hrs >= 72) return '#7a0000';
+  if(hrs >= 24) return 'var(--red)';
+  if(hrs >= 12) return 'var(--warn)';
+  return 'transparent';
+}
+
+function renderDetailTodos(){
+  const lead = DB.leads.find(l=>l.id===_detailId);
+  if(!lead) return;
+  const todos = lead.todos || [];
+  const el = document.getElementById('detail-todos');
+  if(!todos.length){
+    el.innerHTML = '<div style="font-size:12px;color:var(--text4);padding:4px 0 2px;font-weight:500;">No tasks yet</div>';
+    return;
+  }
+  el.innerHTML = todos.map(t=>{
+    const ageClass = t.done ? '' : _todoAgeClass(t.created);
+    const dotColor = t.done ? 'transparent' : _todoAgeDotColor(t.created);
+    return `<div class="todo-row ${ageClass}${t.done?' done-row':''}">
+      <div class="todo-check${t.done?' checked':''}" onclick="todoToggle('${t.id}')">
+        ${t.done?`<svg width="11" height="11" fill="none" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`:''}
+      </div>
+      <div class="todo-text${t.done?' done-text':''}">${esc(t.text)}</div>
+      <div class="todo-age-dot" style="background:${dotColor};"></div>
+      <button class="todo-del" onclick="todoDelete('${t.id}')">×</button>
+    </div>`;
+  }).join('');
+}
+
+function todoAddRow(){
+  const row = document.getElementById('detail-todo-input-row');
+  row.style.display = 'flex';
+  setTimeout(()=>document.getElementById('detail-todo-input').focus(), 60);
+}
+
+function todoHideInput(){
+  document.getElementById('detail-todo-input-row').style.display='none';
+  document.getElementById('detail-todo-input').value='';
+}
+
+function todoSave(){
+  const inp = document.getElementById('detail-todo-input');
+  const text = inp.value.trim();
+  if(!text) return;
+  const leads = DB.leads;
+  const lead = leads.find(l=>l.id===_detailId);
+  if(!lead) return;
+  if(!lead.todos) lead.todos=[];
+  lead.todos.push({id:uid(), text, done:false, created:Date.now()});
+  DB.leads = leads;
+  inp.value='';
+  todoHideInput();
+  renderDetailTodos();
+}
+
+function todoToggle(todoId){
+  const leads = DB.leads;
+  const lead = leads.find(l=>l.id===_detailId);
+  if(!lead) return;
+  const t = (lead.todos||[]).find(x=>x.id===todoId);
+  if(!t) return;
+  t.done = !t.done;
+  DB.leads = leads;
+  renderDetailTodos();
+}
+
+function todoDelete(todoId){
+  const leads = DB.leads;
+  const lead = leads.find(l=>l.id===_detailId);
+  if(!lead) return;
+  lead.todos = (lead.todos||[]).filter(x=>x.id!==todoId);
+  DB.leads = leads;
+  renderDetailTodos();
+}
+
 // ── Lead detail ───────────────────────────────────────────────────────────────
 let _detailId = null;
 
@@ -2359,6 +2496,9 @@ function openDetail(id){
 
   document.getElementById('detail-sheet-backdrop').classList.add('show');
   document.getElementById('detail-sheet').classList.add('show');
+  // Reset todo input and render todos
+  todoHideInput();
+  renderDetailTodos();
 }
 
 function detailSheetClose(){
