@@ -1726,6 +1726,13 @@ body::before {
   <div style="font-size:11px;color:var(--text4);margin-top:6px;font-weight:500;text-align:center;max-width:280px;display:none;" id="lock-hint-label">
     Shown after 2 wrong attempts
   </div>
+  <!-- Start over — appears after 3 failed attempts -->
+  <button id="lock-startover-btn" onclick="lockStartOver()"
+    style="display:none;margin-top:22px;background:none;border:none;cursor:pointer;
+           font-size:13px;font-weight:600;color:var(--red);opacity:.7;font-family:var(--font);
+           text-decoration:underline;text-underline-offset:3px;padding:4px 8px;">
+    Forgot PIN? Start over
+  </button>
 </div>
 
 <!-- Copy toast -->
@@ -2778,6 +2785,10 @@ function lockSubmit(){
         const hint = _getHint();
         if(hint) hintEl.textContent = '💡 Hint: ' + hint;
       }
+      // Show start-over link after 3 failures
+      if(_lockFails >= 3){
+        document.getElementById('lock-startover-btn').style.display = 'block';
+      }
       setTimeout(()=>{
         inp.classList.remove('error');
         inp.value='';
@@ -2860,9 +2871,33 @@ function lockToggleEye(){
 
 function lockUnlock(){
   _lockFails = 0;
+  document.getElementById('lock-startover-btn').style.display = 'none';
   const screen = document.getElementById('lock-screen');
   screen.classList.add('unlock-out');
   setTimeout(()=>{ screen.style.display='none'; screen.classList.remove('unlock-out'); }, 370);
+}
+
+function lockStartOver(){
+  // Double-tap confirmation to prevent accidental wipes
+  if(!lockStartOver._pending){
+    lockStartOver._pending = true;
+    document.getElementById('lock-err').textContent = 'Tap again to erase all data and reset';
+    document.getElementById('lock-err').style.color = 'var(--red)';
+    setTimeout(()=>{
+      lockStartOver._pending = false;
+      if(document.getElementById('lock-err').textContent.includes('Tap again')){
+        document.getElementById('lock-err').textContent = '';
+      }
+    }, 4000);
+    return;
+  }
+  lockStartOver._pending = false;
+  // Wipe everything and reload
+  try{
+    ['reach_leads','reach_meetings','reach_tmpl','reach_profile',
+     LOCK_KEY, LOCK_KEY+'_hint'].forEach(k=>localStorage.removeItem(k));
+  }catch(e){}
+  location.reload();
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
